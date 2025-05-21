@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.material3.DividerDefaults.color
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -25,25 +26,61 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-
 import coil3.compose.AsyncImage
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 
+
+
+object MyApi{
+    private val url = ""
+    private val client = HttpClient(){
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+            })
+        }
+    }
+    suspend fun list() = client.get(url).body<List<Dish>>()
+}
 
 enum class EScreen {
     ViewE, SelectE, OrderE
 }
+
+//data class Dish (var name: String, var photo: String, var Ingridients: List<Ingridient>)
 data class Dish (var name: String, var photo: String)
+
+data class Ingridient(var name: String, var expDate: String)
 
 class ItemViewModel : ViewModel() {
     var Dishes = mutableStateListOf<Dish>()
     var SelectedList = mutableStateListOf<Dish?>()
     var seleccionat = mutableStateOf<Dish?>(null)
 
+    var IngridientsStock = mutableStateListOf<Ingridient>()
+    var IngridientsUsed = mutableStateListOf<Ingridient>()
+
     fun addDish(dish: Dish?) {
         SelectedList.add(dish)
     }
+
+    /*
+    init {
+        viewModelScope.launch(Dispatchers.Default) {
+            Dishes = MyApi.list() as SnapshotStateList<Dish>
+        }
+    }
+    */
 }
 
 
@@ -61,14 +98,12 @@ fun App() {
 
         EScreen.ViewE -> DishScreen(
             onGoBack = { currentScreen = EScreen.SelectE },
-            viewModel = sharedViewModel,
-
+            viewModel = sharedViewModel
         )
 
         EScreen.OrderE -> OrderScreen(
             onGoBack = { currentScreen = EScreen.SelectE },
-            viewModel = sharedViewModel,
-
+            viewModel = sharedViewModel
         )
     }
 }
@@ -83,9 +118,6 @@ fun OrderScreen(
 {
     val selectedList = viewModel.SelectedList
 
-
-
-
     Scaffold {
 
         LazyColumn(
@@ -93,7 +125,6 @@ fun OrderScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-
             selectedList.forEach { selected ->
                 item {
                     selected?.let {

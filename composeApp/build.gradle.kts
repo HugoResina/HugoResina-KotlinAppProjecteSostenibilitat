@@ -57,6 +57,10 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation("io.coil-kt.coil3:coil-compose:3.2.0")
             implementation("io.coil-kt.coil3:coil-network-ktor3:3.1.0")
+            implementation("io.ktor:ktor-client-core:3.0.2")
+            implementation("io.ktor:ktor-client-cio:3.0.2")
+            implementation("io.ktor:ktor-client-content-negotiation:3.0.2")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.0")
         }
 
         commonTest.dependencies {
