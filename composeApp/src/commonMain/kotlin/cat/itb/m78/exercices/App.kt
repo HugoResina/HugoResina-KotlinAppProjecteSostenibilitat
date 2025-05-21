@@ -1,6 +1,7 @@
 package cat.itb.m78.exercices
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.DividerDefaults.color
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,11 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cat.itb.m78.exercices.theme.AppTheme
+
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.Delay
-import kotlinx.coroutines.delay
-import org.jetbrains.compose.reload.DevelopmentEntryPoint
+
 
 
 enum class EScreen {
@@ -52,28 +52,26 @@ fun App() {
     val sharedViewModel: ItemViewModel = viewModel()
     var currentScreen by remember { mutableStateOf(EScreen.SelectE) }
 
+    when (currentScreen) {
+        EScreen.SelectE -> ListScreen(
+            onSeeList = { currentScreen = EScreen.OrderE },
+            onViewI = { currentScreen = EScreen.ViewE },
+            viewModel = sharedViewModel
+        )
 
+        EScreen.ViewE -> DishScreen(
+            onGoBack = { currentScreen = EScreen.SelectE },
+            viewModel = sharedViewModel,
 
-            when (currentScreen) {
-                EScreen.SelectE -> ListScreen(
-                    onSeeList = { currentScreen = EScreen.OrderE },
-                    onViewI = { currentScreen = EScreen.ViewE },
-                    viewModel = sharedViewModel
-                )
+        )
 
-                EScreen.ViewE -> DishScreen(
-                    onGoBack = { currentScreen = EScreen.SelectE },
-                    viewModel = sharedViewModel,
+        EScreen.OrderE -> OrderScreen(
+            onGoBack = { currentScreen = EScreen.SelectE },
+            viewModel = sharedViewModel,
 
-                )
-
-                EScreen.OrderE -> OrderScreen(
-                    onGoBack = { currentScreen = EScreen.SelectE },
-                    viewModel = sharedViewModel,
-
-                )
-            }
-        }
+        )
+    }
+}
 
 
 
@@ -89,11 +87,13 @@ fun OrderScreen(
 
 
     Scaffold {
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+
             selectedList.forEach { selected ->
                 item {
                     selected?.let {
@@ -183,7 +183,9 @@ fun ListScreen(
                                 onViewI()
                             }
                     ) {
-                        Box(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = Modifier.fillMaxSize()
+                            .border(width = 1.dp, shape = RoundedCornerShape(12.dp), color = Color.Gray)
+                        ) {
                             AsyncImage(
                                 model = dish.photo,
                                 contentDescription = dish.name,
@@ -193,6 +195,7 @@ fun ListScreen(
 
                             Box(
                                 modifier = Modifier
+                                    .border(width = 1.dp, shape = RoundedCornerShape(4.dp), color = Color.Gray)
                                     .align(Alignment.BottomCenter)
                                     .fillMaxWidth()
                                     .background(
@@ -203,7 +206,9 @@ fun ListScreen(
                                             )
                                         )
                                     )
+
                                     .padding(8.dp)
+
                             ) {
                                 Text(
                                     text = dish.name,
