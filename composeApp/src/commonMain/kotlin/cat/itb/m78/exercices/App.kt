@@ -50,15 +50,15 @@ object MyApi{
             })
         }
     }
-    suspend fun list() = client.get(url).body<List<Dish>>()
+    suspend fun listDishes() = client.get(url).body<List<Dish>>()
 }
 
 enum class EScreen {
     ViewE, SelectE, OrderE
 }
 
-//data class Dish (var name: String, var photo: String, var Ingridients: List<Ingridient>)
-data class Dish (var name: String, var photo: String)
+//data class Dish (var name: String, var photo: String, var price: Double, var description: String, var Ingridients: List<Ingridient>)
+data class Dish (var name: String, var photo: String, var price: Double, var description: String)
 
 data class Ingridient(var name: String, var expDate: String)
 
@@ -74,13 +74,15 @@ class ItemViewModel : ViewModel() {
         SelectedList.add(dish)
     }
 
-    /*
+/*
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            Dishes = MyApi.list() as SnapshotStateList<Dish>
+            Dishes = MyApi.listDishes() as SnapshotStateList<Dish>
         }
     }
-    */
+*/
+
+
 }
 
 
@@ -184,7 +186,7 @@ fun ListScreen(
 
     if (itemList.isEmpty()) {
         for (i in 1..15) {
-            val placeholder = Dish("Plato $i", "https://fakeimg.pl/400x400/?text=Dish+$i")
+            val placeholder = Dish("Plato $i", "https://fakeimg.pl/400x400/?text=Dish+$i", i.toDouble(), "" )
             itemList.add(placeholder)
         }
     }
@@ -300,7 +302,9 @@ fun DishScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = dish.name,
+                            //25" "
+                            text = dish.name + "                         "  + dish.price + "€",
+
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                         )
 
