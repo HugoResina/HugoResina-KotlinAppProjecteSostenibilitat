@@ -1,8 +1,9 @@
 [versions]
 
+coilCompose = "3.2.0"
 kotlin = "2.1.0-firework.32"
 compose = "1.7.1"
-agp = "8.6.1"
+agp = "8.9.0"
 androidx-activityCompose = "1.9.3"
 androidx-uiTest = "1.7.4"
 kermit = "2.0.5"
@@ -19,6 +20,7 @@ hotreload = "1.0.0-dev.32.1"
 androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-uitest-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-uiTest" }
 androidx-uitest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidx-uiTest" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
