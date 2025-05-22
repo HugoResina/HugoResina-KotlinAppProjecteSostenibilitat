@@ -39,6 +39,32 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 
+/*
+fun sendGet() {
+    val url = "http://www.google.com/"
+    val obj = URL(url)
+
+    with(obj.openConnection() as HttpURLConnection) {
+        // optional default is GET
+        requestMethod = "GET"
+
+
+        println("\nSending 'GET' request to URL : $url")
+        println("Response Code : $responseCode")
+
+        BufferedReader(InputStreamReader(inputStream)).use {
+            val response = StringBuffer()
+
+            var inputLine = it.readLine()
+            while (inputLine != null) {
+                response.append(inputLine)
+                inputLine = it.readLine()
+            }
+            println(response.toString())
+        }
+    }
+}
+*/
 
 
 object MyApi{
@@ -368,6 +394,3 @@ fun DishScreen(
         }
     }
 }
-
-
-
