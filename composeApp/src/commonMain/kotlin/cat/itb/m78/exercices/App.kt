@@ -15,9 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.material3.DividerDefaults.color
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -31,84 +29,203 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.utils.io.InternalAPI
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.toDatePeriod
+import kotlinx.datetime.toLocalDate
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.imageResource
 
 
-/*
-fun sendGet() {
-    val url = "http://www.google.com/"
-    val obj = URL(url)
+object AuthManager {
+    private var token: String? = null
 
-    with(obj.openConnection() as HttpURLConnection) {
-        // optional default is GET
-        requestMethod = "GET"
-
-
-        println("\nSending 'GET' request to URL : $url")
-        println("Response Code : $responseCode")
-
-        BufferedReader(InputStreamReader(inputStream)).use {
-            val response = StringBuffer()
-
-            var inputLine = it.readLine()
-            while (inputLine != null) {
-                response.append(inputLine)
-                inputLine = it.readLine()
-            }
-            println(response.toString())
-        }
+    fun saveToken(newToken: String){
+        token = newToken
     }
+
+    fun getToken(): String? = token
 }
-*/
 
 
 object MyApi{
-    private val url = ""
+    private val url = "https://api-bar-g9d5c3fshvargsbk.northeurope-01.azurewebsites.net/api/"
     private val client = HttpClient(){
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
             })
         }
+        install(DefaultRequest) {
+            headers.remove(HttpHeaders.Authorization)
+            AuthManager.getToken()?.let { token ->
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
+        }
     }
-    suspend fun listDishes() = client.get(url).body<List<Dish>>()
+
+
+    @OptIn(InternalAPI::class)
+
+
+    suspend fun listMenu(): List<Dish> {
+        val response = client.get(url + "menu") {
+            AuthManager.getToken()?.let { token ->
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
+            accept(ContentType.Application.Json)
+        }
+
+        val responseText = response.bodyAsText()
+
+
+        return response.body()
+    }
+
+    suspend fun listStock(): List<Ingridient> {
+        //ingridients endpoint
+        val response = client.get(url + "ingredient") {
+            AuthManager.getToken()?.let { token ->
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
+            accept(ContentType.Application.Json)
+        }
+
+        val responseText = response.bodyAsText()
+        println("Raw response: $responseText")
+
+        return response.body()
+    }
+
+    suspend fun login(email: String, password: String) {
+        val response = client.post(url + "auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("email" to email, "password" to password))
+        }
+
+        if (response.status.isSuccess()) {
+
+
+            val rawToken: String = response.body()
+            val token = rawToken.trim('"')
+            println("Cleaned token: $token")
+            AuthManager.saveToken(token)
+        } else {
+            val errorMessage: String = response.body()
+            println("Login failed: $errorMessage")
+        }
+    }
 }
+
+
 
 enum class EScreen {
     ViewE, SelectE, OrderE
 }
 
-//data class Dish (var name: String, var photo: String, var price: Double, var description: String, var Ingridients: List<Ingridient>)
-data class Dish (var name: String, var photo: String, var price: Double, var description: String)
 
-data class Ingridient(var name: String, var expDate: String)
+@Serializable
+data class Dish (var name: String, var imageUrl: String, var price: Double, var description: String, var ingredients: List<Ingridient>)
+
+
+@Serializable
+data class Ingridient(var id: Int, var name: String, var expirationDate: String)
 
 class ItemViewModel : ViewModel() {
     var Dishes = mutableStateListOf<Dish>()
+    var IngStock = mutableStateListOf<Ingridient>()
     var SelectedList = mutableStateListOf<Dish?>()
     var seleccionat = mutableStateOf<Dish?>(null)
 
-    var IngridientsStock = mutableStateListOf<Ingridient>()
-    var IngridientsUsed = mutableStateListOf<Ingridient>()
+    //lista para guardar los platos a descontar
+    var DishToDiscount = mutableStateListOf<Dish>()
+    //lista para guardar ingredientes a punto de caducar
+    var IngToDiscount = mutableStateListOf<Ingridient>()
+    //lista para devolver a la api que ingredientes borrar
+    var IngToErrase = mutableStateListOf<Ingridient>()
+
 
     fun addDish(dish: Dish?) {
         SelectedList.add(dish)
     }
 
-/*
-    init {
-        viewModelScope.launch(Dispatchers.Default) {
-            Dishes = MyApi.listDishes() as SnapshotStateList<Dish>
+    fun moveaside(dish: Dish){
+        dish.ingredients.forEach { ing ->
+            IngToErrase.add(ing)
+            IngStock.remove(ing)
+        }
+        Dishes.clear()
+        DishToDiscount.clear()
+        IngToDiscount.clear()
+        getNearExpirationIng()
+        viewModelScope.launch(Dispatchers.Default){
+            val dishesFromApi = MyApi.listMenu()
+            Dishes.addAll(dishesFromApi)
+            getDiscountedDish()
+        }
+
+    }
+
+
+    fun getNearExpirationIng(){
+            IngStock.forEach { ingridient ->
+            val ingDate = LocalDate.parse(ingridient.expirationDate.split("T")[0])
+            val locDate =  Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+            val diff = locDate.daysUntil(ingDate)
+
+            if(diff <= 7){
+                IngToDiscount.add(ingridient)
+            }
         }
     }
-*/
 
+    fun getDiscountedDish(){
+        Dishes.forEach { dish ->
+            if (dish.ingredients.any{it in IngToDiscount}) {
+                DishToDiscount.add(dish)
+            }
+        }
+        DishToDiscount.forEach { dish ->
+            Dishes.remove(dish)
+        }
+    }
 
+    init {
+        viewModelScope.launch(Dispatchers.Default) {
+            MyApi.login("admin@admin", "admin1234")
+            val dishesFromApi = MyApi.listMenu()
+            Dishes.addAll(dishesFromApi)
+            val ingridientsFromApi = MyApi.listStock()
+            IngStock.addAll(ingridientsFromApi)
+            IngStock.forEach { ing ->
+                println(ing.name)
+            }
+            getNearExpirationIng()
+            getDiscountedDish()
+        }
+    }
 }
 
 
@@ -208,14 +325,15 @@ fun ListScreen(
     viewModel: ItemViewModel
 ) {
     val itemList = viewModel.Dishes
+    val discountList = viewModel.DishToDiscount
 
 
-    if (itemList.isEmpty()) {
+    /*if (itemList.isEmpty()) {
         for (i in 1..15) {
-            val placeholder = Dish("Plato $i", "https://fakeimg.pl/400x400/?text=Dish+$i", i.toDouble(), "" )
+            val placeholder = Dish("Plato $i", "https://fakeimg.pl/400x400/?text=Dish+$i", i.toDouble(), "", )
             itemList.add(placeholder)
         }
-    }
+    }*/
 
     Scaffold {
 
@@ -229,6 +347,7 @@ fun ListScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
             itemList.forEach { dish ->
                 item {
                     Card(
@@ -246,7 +365,7 @@ fun ListScreen(
                             .border(width = 1.dp, shape = RoundedCornerShape(12.dp), color = Color.Gray)
                         ) {
                             AsyncImage(
-                                model = dish.photo,
+                                model = dish.imageUrl,
                                 contentDescription = dish.name,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
@@ -280,6 +399,59 @@ fun ListScreen(
                     }
                 }
             }
+
+            discountList.forEach { dish ->
+                item {
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clickable {
+                                viewModel.seleccionat.value = dish
+                                onViewI()
+                            }
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()
+                            .border(width = 1.dp, shape = RoundedCornerShape(12.dp), color = Color.Yellow)
+                        ) {
+                            AsyncImage(
+                                model = dish.imageUrl,
+                                contentDescription = dish.name,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .border(width = 1.dp, shape = RoundedCornerShape(4.dp), color = Color.Yellow)
+                                    .align(Alignment.BottomCenter)
+                                    .fillMaxWidth()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Transparent,
+                                                Color.Black.copy(alpha = 0.6f)
+                                            )
+                                        )
+                                    )
+
+                                    .padding(8.dp)
+
+                            ) {
+                                Text(
+                                    text = dish.name,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
         }
     }
 
@@ -311,7 +483,7 @@ fun DishScreen(
         ) {
             selectedDish?.let { dish ->
                 AsyncImage(
-                    model = dish.photo,
+                    model = dish.imageUrl,
                     contentDescription = dish.name,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -337,7 +509,7 @@ fun DishScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ornare lorem purus, vitae varius ex tempor et...",
+                            text = dish.description,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                         )
@@ -367,10 +539,8 @@ fun DishScreen(
                     Button(
                         onClick = {
                             viewModel.addDish(dish)
-
-                          
+                            viewModel.moveaside(dish)
                             onGoBack()
-
 
                         },
                         modifier = Modifier.weight(1f),

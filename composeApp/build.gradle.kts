@@ -75,6 +75,11 @@ kotlin {
             implementation(libs.androidx.activityCompose)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.client.core.vktorversion)
+            implementation(libs.ktor.ktor.client.cio) // o el engine que uses
+            implementation(libs.ktor.client.content.negotiation.vktorversion)
+            implementation("io.ktor:ktor-serialization-kotlinx-json:<ktor_version>")
+
 
         }
 
@@ -109,6 +114,7 @@ android {
 
 //https://developer.android.com/develop/ui/compose/testing#setup
 dependencies {
+    implementation(libs.androidx.media3.common.ktx)
     androidTestImplementation(libs.androidx.uitest.junit4)
     debugImplementation(libs.androidx.uitest.testManifest)
 }
