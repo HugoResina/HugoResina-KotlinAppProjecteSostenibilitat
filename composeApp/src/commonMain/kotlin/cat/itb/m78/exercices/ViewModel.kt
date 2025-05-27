@@ -18,7 +18,7 @@ import kotlinx.datetime.toLocalDateTime
 class ItemViewModel : ViewModel() {
     var Dishes = mutableStateListOf<Dish>()
     var NoStockDishes = mutableStateListOf<Dish>()
-    var IngStock = mutableStateListOf<Ingridient>()
+    var IngStock = mutableStateListOf<Ingredient>()
     var SelectedList = mutableStateListOf<Dish?>()
     var seleccionat = mutableStateOf<Dish?>(null)
 
@@ -27,11 +27,9 @@ class ItemViewModel : ViewModel() {
     //lista para guardar los platos a descontar
     var DishToDiscount = mutableStateListOf<Dish>()
     //lista para guardar ingredientes a punto de caducar
-    var IngToDiscount = mutableStateListOf<Ingridient>()
+    var IngToDiscount = mutableStateListOf<Ingredient>()
     //lista para devolver a la api que ingredientes borrar
-    var IngToErrase = mutableStateListOf<Ingridient>()
-
-
+    var IngToErrase = mutableStateListOf<Ingredient>()
 
     fun isDishInStock(dish: Dish): Boolean {
         // Verificar si todos los ingredientes del plato están en stock o con descuento
@@ -49,8 +47,8 @@ class ItemViewModel : ViewModel() {
 
             // 2) Actualizamos stock / ingredientes / listas en background
             viewModelScope.launch(Dispatchers.Default) {
-                val ingredientsToDiscount = mutableListOf<Ingridient>()
-                val ingredientsInStock = mutableListOf<Ingridient>()
+                val ingredientsToDiscount = mutableListOf<Ingredient>()
+                val ingredientsInStock = mutableListOf<Ingredient>()
 
                 // 3) Copiar las listas para evitar modificación concurrente
                 val ingToDiscountCopy = IngToDiscount.toList()
@@ -58,7 +56,7 @@ class ItemViewModel : ViewModel() {
                 val ingToErraseCopy = IngToErrase.toList()
 
                 // 4) Creamos listas auxiliares para los ingredientes que deben ser añadidos a IngToErrase
-                val newIngToErrase = mutableListOf<Ingridient>()
+                val newIngToErrase = mutableListOf<Ingredient>()
 
                 // Recorrer todos los ingredientes del plato
                 dish.ingredients.forEach { DIng ->
@@ -120,7 +118,7 @@ class ItemViewModel : ViewModel() {
 
 
     fun getNearExpirationIng() {
-        val expired = mutableListOf<Ingridient>()
+        val expired = mutableListOf<Ingredient>()
 
         val stockCopy = IngStock.toList() // Copia para evitar modificación concurrente
         for (ingredient in stockCopy) {
@@ -146,8 +144,8 @@ class ItemViewModel : ViewModel() {
             SelectedList.add(dish)
 
             // 2) Recorrer los ingredientes del plato
-            val missingIngredients = mutableListOf<Ingridient>()
-            val discountedIngredients = mutableListOf<Ingridient>()
+            val missingIngredients = mutableListOf<Ingredient>()
+            val discountedIngredients = mutableListOf<Ingredient>()
             val allIngredientsInStockOrDiscount = dish.ingredients.all { ingredient ->
                 val inStock = IngStock.any { it.name == ingredient.name }
                 val inDiscount = IngToDiscount.any { it.name == ingredient.name }

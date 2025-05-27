@@ -6,13 +6,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.bundle.Bundle
+import cat.itb.m78.exercices.bar.Bar
 
 
 class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { App() }
+        setContent { Bar() }
     }
 }
 

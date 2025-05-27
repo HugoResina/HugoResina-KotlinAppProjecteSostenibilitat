@@ -1,5 +1,8 @@
-package cat.itb.m78.exercices
+package cat.itb.m78.exercices.bar.ViewModels
 
+
+import cat.itb.m78.exercices.bar.Models.Dish
+import cat.itb.m78.exercices.bar.Models.Ingredient
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.DefaultRequest
@@ -77,8 +80,6 @@ object MyApi{
         }
 
         if (response.status.isSuccess()) {
-
-
             val rawToken: String = response.body()
             val token = rawToken.trim('"')
             println("Cleaned token: $token")
