@@ -39,7 +39,6 @@ class ItemViewModel : ViewModel() {
             inStock || inDiscount
         }
     }
-
     fun moveAside(dish: Dish) {
         if (isDishInStock(dish)) {
             // 1) Añadir el plato directamente

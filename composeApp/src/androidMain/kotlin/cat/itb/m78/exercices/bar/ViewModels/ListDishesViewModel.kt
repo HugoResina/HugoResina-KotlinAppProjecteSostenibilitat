@@ -12,36 +12,42 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toLocalDateTime
 
 class ListDishesViewModel : ViewModel() {
+    var dishes = mutableStateOf<List<Dish>>(emptyList())
     var discountedDishes = mutableStateOf<List<Dish>>(emptyList())
     var noStockDishes = mutableStateOf<List<Dish>>(emptyList())
-    var isLoading = mutableStateOf(true)
 
     init {
         viewModelScope.launch {
             try {
                 MyApi.login("admin@admin", "admin1234")
-                val menu = MyApi.listMenu()
-                getDiscountedOrNoStockDish(menu)
-
-                isLoading.value = false
+                dishes.value = MyApi.listMenu()
+                getDiscountedOrNoStockDish()
+                categorizeDishes()
             } catch (e: Exception){
                 println("Error inicializando datos")
-            } finally {
-                isLoading.value = false
             }
         }
     }
 
-    private fun getDiscountedOrNoStockDish(dishes: List<Dish>) {
-        dishes.forEach { dish ->
+    private fun getDiscountedOrNoStockDish() {
+        dishes.value.forEach { dish ->
             if (!dish.ingredients.any()) noStockDishes.value += dish
             dish.ingredients.forEach { ingredient ->
                 val expirationDate = LocalDate.parse(ingredient.expirationDate.split("T")[0])
                 val currentDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                 val daysUntilExpiration = currentDate.date.daysUntil(expirationDate)
-
                 if (daysUntilExpiration <= 7) discountedDishes.value += dish
             }
+        }
+    }
+
+    private fun categorizeDishes(){
+        val discountedNames = discountedDishes.value.map { it.name }
+        val noStockNames = noStockDishes.value.map { it.name }
+        val forbiddenNames = discountedNames + noStockNames
+
+        dishes.value = dishes.value.filter { dish ->
+            dish.name !in forbiddenNames
         }
     }
 

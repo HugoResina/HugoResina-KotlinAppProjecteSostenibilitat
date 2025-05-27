@@ -58,6 +58,17 @@ object MyApi{
         return response.body()
     }
 
+    suspend fun getDishByName(dishName: String): Dish {
+        val response = client.get(url + "dish/name/" + dishName) {
+            AuthManager.getToken()?.let { token ->
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
+            accept(ContentType.Application.Json)
+        }
+
+        return response.body()
+    }
+
     suspend fun listStock(): List<Ingredient> {
         //ingridients endpoint
         val response = client.get(url + "ingredient") {
