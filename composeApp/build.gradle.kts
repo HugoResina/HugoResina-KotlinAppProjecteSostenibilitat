@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.compose.hotreload)
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlinx.serialization)
+    id("app.cash.sqldelight") version "2.0.2"
 }
 
 composeCompiler {
@@ -55,12 +56,13 @@ kotlin {
             implementation(libs.androidx.navigation.composee)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
-            implementation("io.coil-kt.coil3:coil-compose:3.2.0")
-            implementation("io.coil-kt.coil3:coil-network-ktor3:3.1.0")
-            implementation("io.ktor:ktor-client-core:3.0.2")
-            implementation("io.ktor:ktor-client-cio:3.0.2")
-            implementation("io.ktor:ktor-client-content-negotiation:3.0.2")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.0")
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
+            implementation(libs.ktor.client.core.v302)
+            implementation(libs.ktor.client.cio.v302)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json.v310)
+            implementation(libs.coroutines.extensions)
         }
 
         commonTest.dependencies {
@@ -76,17 +78,18 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.client.core.vktorversion)
-            implementation(libs.ktor.ktor.client.cio) // o el engine que uses
+            implementation(libs.ktor.ktor.client.cio)
             implementation(libs.ktor.client.content.negotiation.vktorversion)
-            implementation("io.ktor:ktor-serialization-kotlinx-json:<ktor_version>")
-
-
+            implementation(libs.ktor.ktor.serialization.kotlinx.json)
+            implementation(libs.android.driver)
+            implementation(libs.androidx.startup.runtime)
         }
 
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.sqlite.driver)
         }
 
         iosMain.dependencies {
@@ -115,6 +118,7 @@ android {
 //https://developer.android.com/develop/ui/compose/testing#setup
 dependencies {
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.androidx.startup.runtime)
     androidTestImplementation(libs.androidx.uitest.junit4)
     debugImplementation(libs.androidx.uitest.testManifest)
 }
@@ -138,6 +142,16 @@ compose.desktop {
                 iconFile.set(project.file("desktopAppIcons/MacosIcon.icns"))
                 bundleID = "cat.itb.m78.exercices.desktopApp"
             }
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("cat.itb.m78.exercices.db")
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
+            verifyMigrations.set(true)
         }
     }
 }

@@ -1,4 +1,4 @@
-package cat.itb.m78.exercices.bar.Screens
+package cat.itb.m78.exercices.bar.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,10 +14,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -25,13 +23,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -39,20 +37,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cat.itb.m78.exercices.bar.Models.Dish
-import cat.itb.m78.exercices.bar.ViewModels.DishViewModel
+import cat.itb.m78.exercices.bar.models.Dish
+import cat.itb.m78.exercices.bar.viewModels.DatabaseViewModel
+import cat.itb.m78.exercices.bar.viewModels.DishViewModel
 import coil3.compose.AsyncImage
+import kotlin.reflect.KFunction1
 
 @Composable
 fun DishScreen(navigateToListScreen: () -> Unit, dishName: String){
-    val viewModel = viewModel { DishViewModel(dishName) }
+    val dishViewModel = viewModel { DishViewModel(dishName) }
+    val dbViewModel = viewModel { DatabaseViewModel() }
 
-    DishScreenArguments(navigateToListScreen, viewModel.dish.value)
+    LaunchedEffect(dishName) {
+        dbViewModel.isDishSelected(dishName)
+    }
+
+    DishScreenArguments(navigateToListScreen, dishViewModel.dish.value,
+        dbViewModel.isDishSelected.value, dbViewModel::addSelectedDish,
+        dbViewModel::removeSelectedDish)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DishScreenArguments(navigateToListScreen: () -> Unit, dish: Dish){
+fun DishScreenArguments(
+    navigateToListScreen: () -> Unit, dish: Dish, isDishSelected: Boolean,
+    addSelectedDish: KFunction1<String, Unit>, removeSelectedDish: KFunction1<String, Unit>
+){
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -96,9 +106,7 @@ fun DishScreenArguments(navigateToListScreen: () -> Unit, dish: Dish){
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            //25" "
                             text = dish.name + "                         " + dish.price + "€",
-
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                         )
 
@@ -133,26 +141,18 @@ fun DishScreenArguments(navigateToListScreen: () -> Unit, dish: Dish){
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Button(
-                        onClick = {
-
-                        },
+                        onClick = { if (isDishSelected) removeSelectedDish(dish.name) else addSelectedDish(dish.name) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Añadir")
+                        Text(if (isDishSelected) "Eliminar de la comanda" else "Afegir a la comanda")
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-            } ?: run {
-                Text(
-                    text = "No se seleccionó ningún plato.",
-                    modifier = Modifier.padding(16.dp),
-                    color = Color.Red
-                )
             }
         }
     }

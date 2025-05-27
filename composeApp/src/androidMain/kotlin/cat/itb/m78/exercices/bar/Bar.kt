@@ -5,8 +5,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import cat.itb.m78.exercices.bar.Screens.DishScreen
-import cat.itb.m78.exercices.bar.Screens.ListScreen
+import cat.itb.m78.exercices.bar.screens.DishScreen
+import cat.itb.m78.exercices.bar.screens.ListScreen
 import kotlinx.serialization.Serializable
 
 object Destination {

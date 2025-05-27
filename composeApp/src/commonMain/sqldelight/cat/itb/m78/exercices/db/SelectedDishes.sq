@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS SelectedDishes  (
+    id INTEGER PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL
+);
+
+selectAll:
+SELECT * FROM SelectedDishes;
+
+selectByName:
+SELECT * FROM SelectedDishes WHERE name = ?;
+
+insert:
+INSERT INTO SelectedDishes(name) VALUES (?);
+
+delete:
+DELETE FROM SelectedDishes WHERE name = ?;

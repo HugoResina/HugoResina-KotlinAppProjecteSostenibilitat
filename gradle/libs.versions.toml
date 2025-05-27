@@ -1,6 +1,7 @@
 [versions]
 
 coilCompose = "3.2.0"
+coilNetworkKtor3 = "3.1.0"
 kotlin = "2.1.0-firework.32"
 compose = "1.7.1"
 agp = "8.9.0"
@@ -14,24 +15,34 @@ androidx-navigation = "2.8.0-alpha10"
 kotlinx-serialization = "1.7.3"
 kotlinx-datetime = "0.6.1"
 hotreload = "1.0.0-dev.32.1"
+ktorClientCio = "3.0.2"
 ktorClientContentNegotiationVersion = "<ktor_version>"
+ktorClientCore = "3.0.2"
 ktorClientCoreVersion = "<ktor_version>"
+ktorSerializationKotlinxJson = "3.1.0"
 media3CommonKtx = "1.7.1"
+sqliteDriver = "2.0.2"
+startupRuntime = "1.2.0"
 
 [libraries]
 
+android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqliteDriver" }
 androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-uitest-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-uiTest" }
 androidx-uitest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidx-uiTest" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coilNetworkKtor3" }
+coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqliteDriver" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+ktor-client-cio-v302 = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCio" }
 ktor-client-content-negotiation-vktorversion = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiationVersion" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-core-v302 = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 ktor-client-core-vktorversion = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCoreVersion" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
@@ -47,6 +58,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 ktor-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCoreVersion" }
+ktor-ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorClientContentNegotiationVersion" }
+ktor-serialization-kotlinx-json-v310 = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
+sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqliteDriver" }
+androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "startupRuntime" }
 
 [plugins]
 

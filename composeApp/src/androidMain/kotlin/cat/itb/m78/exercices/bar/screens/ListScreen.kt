@@ -1,4 +1,4 @@
-package cat.itb.m78.exercices.bar.Screens
+package cat.itb.m78.exercices.bar.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -34,8 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cat.itb.m78.exercices.bar.Models.Dish
-import cat.itb.m78.exercices.bar.ViewModels.ListDishesViewModel
+import cat.itb.m78.exercices.bar.models.Dish
+import cat.itb.m78.exercices.bar.viewModels.ListDishesViewModel
 import coil3.compose.AsyncImage
 
 @Composable

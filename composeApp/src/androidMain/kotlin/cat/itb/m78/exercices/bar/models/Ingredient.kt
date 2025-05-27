@@ -1,4 +1,4 @@
-package cat.itb.m78.exercices.bar.Models
+package cat.itb.m78.exercices.bar.models
 
 import kotlinx.serialization.Serializable
 

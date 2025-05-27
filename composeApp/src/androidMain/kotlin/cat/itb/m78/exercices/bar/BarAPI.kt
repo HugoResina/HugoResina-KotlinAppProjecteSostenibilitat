@@ -1,8 +1,8 @@
-package cat.itb.m78.exercices.bar.ViewModels
+package cat.itb.m78.exercices.bar
 
 
-import cat.itb.m78.exercices.bar.Models.Dish
-import cat.itb.m78.exercices.bar.Models.Ingredient
+import cat.itb.m78.exercices.bar.models.Dish
+import cat.itb.m78.exercices.bar.models.Ingredient
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.DefaultRequest

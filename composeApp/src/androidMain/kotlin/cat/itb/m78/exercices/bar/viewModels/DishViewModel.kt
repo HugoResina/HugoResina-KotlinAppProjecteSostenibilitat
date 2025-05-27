@@ -1,17 +1,11 @@
-package cat.itb.m78.exercices.bar.ViewModels
+package cat.itb.m78.exercices.bar.viewModels
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cat.itb.m78.exercices.bar.Models.Dish
+import cat.itb.m78.exercices.bar.MyApi
+import cat.itb.m78.exercices.bar.models.Dish
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.daysUntil
-import kotlinx.datetime.toLocalDateTime
-import m78exercices.composeapp.generated.resources.Res
 
 class DishViewModel(dishName: String) : ViewModel() {
     private val dummyDish = Dish("", "", 0.0, emptyList(), "", emptyList())
