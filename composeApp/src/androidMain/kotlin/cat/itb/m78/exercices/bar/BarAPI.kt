@@ -70,16 +70,12 @@ object MyApi{
     }
 
     suspend fun listStock(): List<Ingredient> {
-        //ingridients endpoint
         val response = client.get(url + "ingredient") {
             AuthManager.getToken()?.let { token ->
                 header(HttpHeaders.Authorization, "Bearer $token")
             }
             accept(ContentType.Application.Json)
         }
-
-        val responseText = response.bodyAsText()
-        println("Raw response: $responseText")
 
         return response.body()
     }

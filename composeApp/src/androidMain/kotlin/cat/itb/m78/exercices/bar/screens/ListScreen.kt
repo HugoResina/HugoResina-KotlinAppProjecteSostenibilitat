@@ -34,12 +34,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cat.itb.m78.exercices.bar.models.Dish
+import cat.itb.m78.exercices.bar.viewModels.DatabaseViewModel
 import cat.itb.m78.exercices.bar.viewModels.ListDishesViewModel
 import coil3.compose.AsyncImage
 
 @Composable
 fun ListScreen(navigateToDishScreen: (String) -> Unit, navigateToOrderScreen: () -> Unit){
-    val viewModel = viewModel { ListDishesViewModel() }
+    val dbViewModel = viewModel { DatabaseViewModel() }
+    val viewModel = viewModel { ListDishesViewModel(dbViewModel.getSelectedDishes()) }
 
     val dishes = viewModel.dishes
     val discountedDishes = viewModel.discountedDishes
