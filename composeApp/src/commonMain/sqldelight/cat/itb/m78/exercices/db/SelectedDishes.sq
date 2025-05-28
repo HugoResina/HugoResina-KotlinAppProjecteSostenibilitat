@@ -14,3 +14,6 @@ INSERT INTO SelectedDishes(name) VALUES (?);
 
 delete:
 DELETE FROM SelectedDishes WHERE name = ?;
+
+deleteAll:
+DELETE FROM SelectedDishes;

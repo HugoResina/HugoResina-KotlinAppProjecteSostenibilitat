@@ -30,10 +30,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,6 +45,11 @@ import cat.itb.m78.exercices.bar.viewModels.DatabaseViewModel
 import cat.itb.m78.exercices.bar.viewModels.DishViewModel
 import coil3.compose.AsyncImage
 import kotlin.reflect.KFunction1
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun DishScreen(navigateToListScreen: () -> Unit, dishName: String){
@@ -106,9 +114,42 @@ fun DishScreenArguments(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = dish.name + "                         " + dish.price + "€",
+                            text = dish.name,
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                         )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val isNearExpiry = remember(dish) {
+                            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                            dish.ingredients.any {
+                                val exp = LocalDate.parse(it.expirationDate.split("T")[0])
+                                now.daysUntil(exp) <= 7
+                            }
+                        }
+                        val discountedPrice = remember(dish) { (dish.price * 0.85) }
+
+                        if (isNearExpiry) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "${dish.price} €",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textDecoration = TextDecoration.LineThrough,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = String.format("%.2f €", discountedPrice),
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.Red
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = String.format("%.2f €", dish.price),
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 

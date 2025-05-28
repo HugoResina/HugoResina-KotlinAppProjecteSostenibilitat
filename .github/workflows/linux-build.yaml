@@ -1,0 +1,63 @@
+name: Manual Linux Build
+
+on:
+  workflow_dispatch:
+    { }
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-gradle
+
+      - name: Create path variables
+        id: path_variables
+        run: |
+          name_deb="MyApp.deb"
+          path_deb="composeApp/build/compose/binaries/main-release/deb/${name}"
+          name_rpm="MyApp.rpm"
+          path_rpm="composeApp/build/compose/binaries/main-release/rpm/${name}"
+          path_appimage="composeApp/build/compose/binaries/main-release/app/MyApp"
+          name_appimage="MyApp"
+          echo "RELEASE_PATH_DEB=$path_deb" >> $GITHUB_ENV
+          echo "RELEASE_PATH_RPM=$path_rpm" >> $GITHUB_ENV
+          echo "RELEASE_PATH_APPIMAGE=$path_appimage" >> $GITHUB_ENV
+          echo "NAME_DEB=$name_deb" >> $GITHUB_ENV
+          echo "NAME_RPM=$name_rpm" >> $GITHUB_ENV
+          echo "NAME_APPIMAGE=$name_appimage" >> $GITHUB_ENV
+
+      - name: Create RPM & DEB
+        run: "./gradlew packageReleaseDeb packageReleaseAppImage"
+
+      - name: list results
+        run: find composeApp/build/compose/binaries/main-release
+
+      - name: Upload DEB
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.RELEASE_PATH_DEB }}
+          name: ${{ env.NAME_DEB }}
+          retention-days: 1
+
+      - name: Upload APPIMAGE
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.RELEASE_PATH_APPIMAGE }}
+          name: ${{ env.NAME_APPIMAGE }}
+          retention-days: 1
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            **/build/compose/logs/*
+          retention-days: 1

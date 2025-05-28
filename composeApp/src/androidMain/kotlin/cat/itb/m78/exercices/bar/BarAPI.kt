@@ -8,6 +8,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -33,7 +34,7 @@ object AuthManager {
 
 object MyApi{
     private const val url = "https://api-bar-g9d5c3fshvargsbk.northeurope-01.azurewebsites.net/api/"
-    private val client = HttpClient(){
+    private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -96,4 +97,20 @@ object MyApi{
             println("Login failed: $errorMessage")
         }
     }
+
+    suspend fun removeUsedIngredients(ids: List<Int>){
+        val response = client.delete(url + "ingredient") {
+            contentType(ContentType.Application.Json)
+            setBody(ids)
+            AuthManager.getToken()?.let { token ->
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
+        }
+
+        if (!response.status.isSuccess()) {
+            val errorMessage: String = response.bodyAsText()
+            println("Failed to remove ingredients: $errorMessage")
+        }
+    }
+
 }

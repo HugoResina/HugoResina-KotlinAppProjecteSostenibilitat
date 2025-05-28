@@ -1,0 +1,47 @@
+name: Android CI - debug apk
+
+on:
+  workflow_dispatch:
+    { }
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-gradle
+
+      - name: Build with Gradle
+        run: "./gradlew :composeApp:assembleDebug"
+
+      - name: Create path variables
+        id: path_variables
+        run: |
+          name_deb="MyApp.apk"
+          path_deb="composeApp/build/outputs/apk/debug/composeApp-debug.apk"
+          echo "RELEASE_PATH_APK=$path_deb" >> $GITHUB_ENV
+          echo "NAME_APK=$name_deb" >> $GITHUB_ENV
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.RELEASE_PATH_APK }}
+          name: ${{ env.NAME_APK }}
+          retention-days: 1
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            **/build/compose/logs/*
+          retention-days: 1

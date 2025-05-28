@@ -1,0 +1,73 @@
+name: Manual Windows Build
+
+on:
+  workflow_dispatch:
+    { }
+
+jobs:
+  windows-build:
+    runs-on: windows-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup environment
+        uses: ./.github/actions/setup-gradle
+
+      - name: Create path variables
+        id: path_variables
+        shell: pwsh
+        run: |
+          $name_msi = "MyApp.msi"
+          $path_msi = "composeApp/build/compose/binaries/main-release/msi/${name_msi}"
+          $name_exe = "MyApp.exe"
+          $path_exe = "composeApp/build/compose/binaries/main-release/exe/${name_exe}"
+          $name_msix = "MyApp.msix"
+          $path_msix = "composeApp/build/compose/binaries/main-release/msix/${name_msix}"
+          $path_zip = "composeApp/build/compose/binaries/main-release/app/MyApp.zip"
+          "TAG=$tag" >> $env:GITHUB_ENV
+          "RELEASE_PATH_MSI=$path_msi" >> $env:GITHUB_ENV
+          "NAME_MSI=$name_msi" >> $env:GITHUB_ENV
+          "RELEASE_PATH_EXE=$path_exe" >> $env:GITHUB_ENV
+          "NAME_EXE=$name_exe" >> $env:GITHUB_ENV
+          "RELEASE_PATH_MSIX=$path_msix" >> $env:GITHUB_ENV
+          "NAME_MSIX=$name_msix" >> $env:GITHUB_ENV
+          "RELEASE_PATH_ZIP=$path_zip" >> $env:GITHUB_ENV
+
+      - name: Create MSI
+        run: "./gradlew packageReleaseMsi packageReleaseExe packageReleaseAppImage"
+
+      - name: Compress AppImage
+        run: Compress-Archive composeApp/build/compose/binaries/main-release/app/CHECK_NAME -DestinationPath composeApp/build/compose/binaries/main-release/app/CHECK_NAME.zip
+
+      - name: Upload asset msi
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.RELEASE_PATH_MSI }}
+          name: ${{ env.NAME_MSI }}
+          retention-days: 1
+
+      - name: Upload asset exe
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.RELEASE_PATH_EXE }}
+          name: ${{ env.NAME_EXE }}
+          retention-days: 1
+
+      - name: Upload asset exe
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ env.RELEASE_PATH_ZIP }}
+          name: "MyApp.zip"
+          retention-days: 1
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            **/build/compose/logs/*
+          retention-days: 1

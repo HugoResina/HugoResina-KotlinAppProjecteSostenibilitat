@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import cat.itb.m78.exercices.bar.screens.DishScreen
 import cat.itb.m78.exercices.bar.screens.ListScreen
+import cat.itb.m78.exercices.bar.screens.OrderScreen
 import kotlinx.serialization.Serializable
 
 object Destination {
@@ -40,6 +41,12 @@ fun Bar(){
             DishScreen(
                 navigateToListScreen = { navController.navigate(Destination.ListScreen) },
                 dishName = dishName
+            )
+        }
+
+        composable<Destination.OrderScreen>{
+            OrderScreen(
+                navigateToListScreen = { navController.navigate(Destination.ListScreen) }
             )
         }
 

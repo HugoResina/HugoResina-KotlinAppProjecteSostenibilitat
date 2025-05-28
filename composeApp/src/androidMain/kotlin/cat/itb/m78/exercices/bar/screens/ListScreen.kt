@@ -13,12 +13,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,20 +47,33 @@ import coil3.compose.AsyncImage
 @Composable
 fun ListScreen(navigateToDishScreen: (String) -> Unit, navigateToOrderScreen: () -> Unit){
     val dbViewModel = viewModel { DatabaseViewModel() }
-    val viewModel = viewModel { ListDishesViewModel(dbViewModel.getSelectedDishes()) }
+    val viewModel = viewModel { ListDishesViewModel() }
 
+    val isLoading = viewModel.isLoading
     val dishes = viewModel.dishes
     val discountedDishes = viewModel.discountedDishes
     val noStockDishes = viewModel.noStockDishes
 
-    ListScreenArguments(navigateToDishScreen, navigateToOrderScreen, dishes.value,
-        discountedDishes.value, noStockDishes.value)
+    ListScreenArguments(
+        navigateToDishScreen,
+        navigateToOrderScreen,
+        isLoading.value,
+        dishes.value,
+        discountedDishes.value,
+        noStockDishes.value
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListScreenArguments(navigateToDishScreen: (String) -> Unit, navigateToOrderScreen: () -> Unit,
-                        dishes: List<Dish>, discountedDishes: List<Dish>, noStockDishes: List<Dish>){
+fun ListScreenArguments(
+    navigateToDishScreen: (String) -> Unit,
+    navigateToOrderScreen: () -> Unit,
+    isLoading: Boolean,
+    dishes: List<Dish>,
+    discountedDishes: List<Dish>,
+    noStockDishes: List<Dish>
+){
 
     Scaffold(
         topBar = {
@@ -71,204 +90,93 @@ fun ListScreenArguments(navigateToDishScreen: (String) -> Unit, navigateToOrderS
                     )
                 }
             )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { navigateToOrderScreen() },
+                icon = { Icon(Icons.Filled.ShoppingCart, null) },
+                text = { Text(text = "Veure comanda") },
+            )
         }
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            if (dishes.isEmpty()){
+            if (isLoading) {
                 CircularProgressIndicator()
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 150.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
                     contentPadding = PaddingValues(bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    dishes.forEach { dish ->
-                        item {
-                            Card(
-                                shape = RoundedCornerShape(12.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
-                                    .clickable {
-                                        navigateToDishScreen(dish.name)
-                                    }
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize()
-                                        .border(
-                                            width = 1.dp,
-                                            shape = RoundedCornerShape(12.dp),
-                                            color = Color.Gray
-                                        )
-                                ) {
-                                    AsyncImage(
-                                        model = dish.imageUrl,
-                                        contentDescription = dish.name,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .border(
-                                                width = 1.dp,
-                                                shape = RoundedCornerShape(4.dp),
-                                                color = Color.Gray
-                                            )
-                                            .align(Alignment.BottomCenter)
-                                            .fillMaxWidth()
-                                            .background(
-                                                Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        Color.Transparent,
-                                                        Color.Black.copy(alpha = 0.6f)
-                                                    )
-                                                )
-                                            )
-                                            .padding(8.dp)
-
-                                    ) {
-                                        Text(
-                                            text = dish.name,
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                            modifier = Modifier.align(Alignment.Center)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                    // Normal dishes
+                    items(dishes) { dish ->
+                        DishCard(dish, Color.Gray, navigateToDishScreen)
                     }
-
-                    if (discountedDishes.isNotEmpty()){
-                        discountedDishes.forEach { dish ->
-                            item {
-                                Card(
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-                                        .clickable {
-                                            navigateToDishScreen(dish.name)
-                                        }
-                                ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize()
-                                            .border(
-                                                width = 1.dp,
-                                                shape = RoundedCornerShape(12.dp),
-                                                color = Color.Yellow
-                                            )
-                                    ) {
-                                        AsyncImage(
-                                            model = dish.imageUrl,
-                                            contentDescription = dish.name,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .border(
-                                                    width = 1.dp,
-                                                    shape = RoundedCornerShape(4.dp),
-                                                    color = Color.Yellow
-                                                )
-                                                .align(Alignment.BottomCenter)
-                                                .fillMaxWidth()
-                                                .background(
-                                                    Brush.verticalGradient(
-                                                        colors = listOf(
-                                                            Color.Transparent,
-                                                            Color.Black.copy(alpha = 0.6f)
-                                                        )
-                                                    )
-                                                )
-
-                                                .padding(8.dp)
-
-                                        ) {
-                                            Text(
-                                                text = dish.name,
-                                                color = Color.White,
-                                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                                modifier = Modifier.align(Alignment.Center)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    // Discounted dishes
+                    items(discountedDishes) { dish ->
+                        DishCard(dish, Color.Yellow, navigateToDishScreen)
                     }
-
-                    if (noStockDishes.isNotEmpty()){
-                        noStockDishes.forEach { dish ->
-                            item {
-                                Card(
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-
-                                ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize()
-                                            .border(
-                                                width = 1.dp,
-                                                shape = RoundedCornerShape(12.dp),
-                                                color = Color.Red
-                                            )
-                                    ) {
-                                        AsyncImage(
-                                            model = dish.imageUrl,
-                                            contentDescription = dish.name,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-
-                                        Box(
-                                            modifier = Modifier
-                                                .border(
-                                                    width = 1.dp,
-                                                    shape = RoundedCornerShape(4.dp),
-                                                    color = Color.Red
-                                                )
-                                                .align(Alignment.BottomCenter)
-                                                .fillMaxWidth()
-                                                .background(
-                                                    Brush.verticalGradient(
-                                                        colors = listOf(
-                                                            Color.Transparent,
-                                                            Color.Black.copy(alpha = 0.6f)
-                                                        )
-                                                    )
-                                                )
-
-                                                .padding(8.dp)
-
-                                        ) {
-                                            Text(
-                                                text = dish.name,
-                                                color = Color.White,
-                                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                                modifier = Modifier.align(Alignment.Center)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    // No-stock dishes
+                    items(noStockDishes) { dish ->
+                        DishCard(dish, Color.Red, navigateToDishScreen, clickable = false)
                     }
-
                 }
+            }
+        }
 
+
+
+    }
+}
+
+@Composable
+private fun DishCard(
+    dish: Dish,
+    borderColor: Color,
+    onClick: (String) -> Unit,
+    clickable: Boolean = true
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .let { m -> if (clickable) m.clickable { onClick(dish.name) } else m }
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+        ) {
+            AsyncImage(
+                model = dish.imageUrl,
+                contentDescription = dish.name,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                modifier = Modifier
+                    .border(1.dp, borderColor, RoundedCornerShape(4.dp))
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.6f)
+                            )
+                        )
+                    )
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = dish.name,
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
         }
     }
