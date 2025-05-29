@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -60,6 +61,11 @@ import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.draw.clip
 import coil3.compose.rememberAsyncImagePainter
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun OrderScreen(navigateToListScreen: () -> Unit) {
@@ -79,7 +85,16 @@ fun OrderScreen(navigateToListScreen: () -> Unit) {
     }
 
     val totalPrice by remember(orderedDishes) {
-        mutableDoubleStateOf(orderedDishes.sumOf { it.price })
+        mutableDoubleStateOf(
+            orderedDishes.sumOf { dish ->
+                val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                val needsDiscount = dish.ingredients.any {
+                    val exp = LocalDate.parse(it.expirationDate.split("T")[0])
+                    today.daysUntil(exp) <= 7
+                }
+                if (needsDiscount) dish.price * 0.85 else dish.price
+            }
+        )
     }
 
     OrderScreenArguments(
@@ -132,6 +147,8 @@ fun OrderScreenArguments(
                     Text("Encara no has afegit cap plat!")
                 }
             } else {
+                Spacer(Modifier.height(8.dp))
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,6 +158,17 @@ fun OrderScreenArguments(
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(selectedList, key = { it.name }) { dish ->
+                        // Check if any ingredient is near expiration (<=7 days)
+                        val nowDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                        val isNearExpiry = remember(dish) {
+                            dish.ingredients.any {
+                                val exp = LocalDate.parse(it.expirationDate.split("T")[0])
+                                nowDate.daysUntil(exp) <= 7
+                            }
+                        }
+                        // Calculate discounted price
+                        val discountedPrice = remember(dish) { dish.price * 0.85 }
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -167,11 +195,29 @@ fun OrderScreenArguments(
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold
                                     )
-                                    Text(
-                                        text = "${dish.price} €",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    if (isNearExpiry) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "${dish.price} €",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                textDecoration = TextDecoration.LineThrough,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = String.format("%.2f €", discountedPrice),
+                                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                                color = Color.Red
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = "${dish.price} €",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                                 IconButton(onClick = { dishNameToDelete = dish.name; showDialog = true }) {
                                     Icon(
@@ -203,7 +249,6 @@ fun OrderScreenArguments(
                         Text(
                             text = "Total: $totalPrice €",
                             style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Bold
                         )
                         FloatingActionButton(

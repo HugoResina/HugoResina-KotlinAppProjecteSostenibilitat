@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -101,7 +103,21 @@ fun ListScreenArguments(
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             if (isLoading) {
-                CircularProgressIndicator()
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Carregant dades...",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 150.dp),
@@ -125,9 +141,6 @@ fun ListScreenArguments(
                 }
             }
         }
-
-
-
     }
 }
 
@@ -140,42 +153,57 @@ private fun DishCard(
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        elevation = CardDefaults.cardElevation(8.dp),
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .let { m -> if (clickable) m.clickable { onClick(dish.name) } else m }
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-                .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 model = dish.imageUrl,
                 contentDescription = dish.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-            Box(
-                modifier = Modifier
-                    .border(1.dp, borderColor, RoundedCornerShape(4.dp))
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.6f)
-                            )
-                        )
-                    )
-                    .padding(8.dp)
-            ) {
+            // Out of stock overlay
+            if (borderColor == Color.Red) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f)))
                 Text(
-                    text = dish.name,
+                    text = "Sense stock",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            // Discount badge
+            if (borderColor == Color.Yellow) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .background(Color.Red, RoundedCornerShape(bottomEnd = 8.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "15% descompte",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+            }
+            // Price tag
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(topStart = 8.dp))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = String.format("%.2f €", dish.price),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                 )
             }
         }
